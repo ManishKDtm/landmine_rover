@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mine Detection Tracker</title>
+  <!-- Google Fonts for military/tech look -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto Mono', 'Segoe UI', Arial, sans-serif;
+      background: #0a141e;
+      box-sizing: border-box;
+    }
+    *, *:before, *:after {
+      box-sizing: inherit;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .dashboard-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: linear-gradient(120deg, rgba(10,20,30,0.92) 60%, rgba(46,139,87,0.18) 100%);
+      z-index: 1;
+      pointer-events: none;
+    }
+    .dashboard-container {
+      position: relative;
+      z-index: 2;
+      background: rgba(10, 20, 30, 0.92);
+      border-radius: 14px;
+      box-shadow: 0 4px 32px #000a;
+      padding: 2.5em 2em 2em 2em;
+      width: 98vw;
+      max-width: 1050px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeIn 0.7s;
+      min-height: 80vh;
+      margin: 40px 0;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    .dashboard-title {
+      font-family: 'Orbitron', 'Roboto Mono', monospace;
+      color: #00ffd0;
+      font-size: 2em;
+      letter-spacing: 3px;
+      margin-bottom: 0.5em;
+      text-transform: uppercase;
+      text-shadow: 0 0 12px #003c2f, 0 0 8px #7fffd4, 0 2px 8px #000;
+      filter: drop-shadow(0 0 6px #003c2f);
+      padding: 0.2em 0;
+      border-radius: 6px;
+      display: inline-block;
+      background: none;
+    }
+    .stats-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      gap: 24px;
+      margin-bottom: 28px;
+      width: 100%;
+    }
+    .stat-card {
+      background: #101c28;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px #0006;
+      padding: 18px 10px 14px 10px;
+      flex: 1 1 120px;
+      max-width: 180px;
+      min-width: 110px;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1.5px solid #2e8b57;
+      transition: transform 0.18s, box-shadow 0.18s;
+      box-sizing: border-box;
+    }
+    .stat-card:hover {
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: 0 6px 18px #7fffd455;
+      border-color: #7fffd4;
+    }
+    .stat-title {
+      font-size: 0.95rem;
+      color: #7fffd4;
+      margin-bottom: 4px;
+      font-weight: 600;
+      font-family: 'Orbitron', 'Roboto Mono', monospace;
+      letter-spacing: 1px;
+      text-shadow: 0 0 4px #7fffd4aa;
+    }
+    .stat-value {
+      font-size: 1rem;
+      font-weight: 900;
+      color: #7fffd4;
+      font-family: 'Orbitron', 'Roboto Mono', monospace;
+      text-shadow: 0 2px 8px #000, 0 0 2px #2e8b57;
+      letter-spacing: 1px;
+      margin: 4px 0 0 0;
+      padding: 2px 4px;
+      border: 1px solid #2e8b57;
+      border-radius: 6px;
+      background: rgba(10,32,32,0.18);
+      min-width: 40px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .dashboard-btn, .logout-btn {
+      padding: 1em 2.5em;
+      font-size: 1.1em;
+      background: linear-gradient(90deg, #2e8b57 60%, #7fffd4 100%);
+      color: #0a141e;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'Orbitron', 'Roboto Mono', monospace;
+      font-weight: 700;
+      letter-spacing: 2px;
+      box-shadow: 0 4px 24px #0008;
+      transition: background 0.2s, color 0.2s, transform 0.2s;
+      outline: none;
+      margin: 10px 8px 0 8px;
+    }
+    .dashboard-btn:hover, .logout-btn:hover, .controls button:hover {
+      background: linear-gradient(90deg, #7fffd4 60%, #2e8b57 100%);
+      color: #222;
+      transform: scale(1.05);
+    }
+    .controls button {
+      padding: 0.7em 1.5em;
+      font-size: 1em;
+      background: linear-gradient(90deg, #2e8b57 60%, #7fffd4 100%);
+      color: #0a141e;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'Orbitron', 'Roboto Mono', monospace;
+      font-weight: 700;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 8px #0008;
+      transition: background 0.2s, color 0.2s, transform 0.2s;
+      outline: none;
+    }
+    #map {
+      height: 50vh;
+      width: 100%;
+      border-radius: 12px;
+      margin-top: 18px;
+      box-shadow: 0 2px 8px #0006;
+      border: 1.5px solid #2e8b57;
+      background: #101c28;
+      z-index: 2;
+    }
+    @media (max-width: 1100px) {
+      .dashboard-container { max-width: 99vw; }
+      .stats-container { flex-wrap: wrap; flex-direction: row; }
+      .stat-card { width: 45vw; max-width: 260px; min-width: 150px; }
+    }
+    @media (max-width: 900px) {
+      .stats-container { flex-wrap: wrap; flex-direction: row; }
+      .stat-card { width: 90vw; max-width: 260px; min-width: 150px; }
+    }
+    @media (max-width: 700px) {
+      .stats-container { flex-direction: column; align-items: center; }
+      .stat-card { width: 90vw; max-width: 260px; min-width: 150px; }
+    }
+    @media (max-width: 600px) {
+      .dashboard-container { padding: 1.5em 0.5em 1em 0.5em; }
+      .dashboard-title { font-size: 1.3em; }
+      #map { height: 35vh; }
+    }
+  </style>
+  <script>
+    if (!sessionStorage.getItem("loggedIn")) {
+      window.location.href = "login.html";
+    }
+  </script>
+</head>
+<body>
+  <div class="dashboard-overlay"></div>
+  <div class="dashboard-container">
+    <div class="dashboard-title">Mine Detection Rover – Real-time Tracking</div>
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-title">Wi-Fi Status</div>
+        <div class="stat-value" id="wifiStatus">Loading...</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">GPS Status</div>
+        <div class="stat-value" id="gpsStatus">Loading...</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Metal Sensor</div>
+        <div class="stat-value" id="metalStatus">Loading...</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Total Mines Detected</div>
+        <div class="stat-value" id="mineCounter">0</div>
+      </div>
+    </div>
+    <div class="controls">
+      <button onclick="downloadCSV()">📅 Export CSV</button>
+      <button onclick="downloadKML()">📅 Export KML</button>
+      <button onclick="clearMap()">🪩 Clear Map</button>
+    </div>
+    <div id="map"></div>
+    <div>
+      <button class="dashboard-btn" onclick="window.location.href='dashboard.html'">📊 Open Dashboard</button>
+      <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+    </div>
+  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.9.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAYUuC-litG-rCv8KSsD-R3B1uWv3AuyVQ",
+      authDomain: "minedetectionrover.firebaseapp.com",
+      databaseURL: "https://minedetectionrover-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "minedetectionrover",
+      storageBucket: "minedetectionrover.appspot.com",
+      messagingSenderId: "127964216758",
+      appId: "1:127964216758:web:c7670710c374eb699dd517"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let map;
+    let markers = [];
+    let pathLine;
+    const pathCoordinates = [];
+    let roverMarker = null;
+
+    window.initMap = () => {
+      const center = { lat: 22.5726, lng: 88.3639 };
+      map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 6,
+        center: center,
+        mapTypeId: 'terrain'
+      });
+
+      const minesRef = ref(db, "mines");
+      const roverRef = ref(db, "rover_position");
+
+      onValue(minesRef, (snapshot) => {
+        clearMap();
+        pathCoordinates.length = 0;
+        let mineCount = 0;
+        snapshot.forEach((childSnapshot) => {
+          const data = childSnapshot.val();
+          if (data.latitude && data.longitude) {
+            const position = { lat: data.latitude, lng: data.longitude };
+
+            const marker = new google.maps.Marker({
+              position,
+              map,
+              title: `Mine @ ${data.timestamp || 'Unknown'}`,
+              icon: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+            });
+            markers.push(marker);
+
+            pathCoordinates.push(position);
+            mineCount++;
+          }
+        });
+
+        document.getElementById("mineCounter").textContent = mineCount;
+
+        if (pathCoordinates.length > 1) {
+          pathLine = new google.maps.Polyline({
+            path: pathCoordinates,
+            geodesic: true,
+            strokeColor: "#FF0000",
+            strokeOpacity: 0.8,
+            strokeWeight: 4,
+            icons: [{
+              icon: {
+                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                scale: 4,
+                strokeColor: '#003366'
+              },
+              offset: '100%',
+              repeat: '100px'
+            }]
+          });
+          pathLine.setMap(map);
+        }
+      });
+
+      onValue(roverRef, (snap) => {
+        const data = snap.val();
+        if (data && data.latitude && data.longitude) {
+          const pos = { lat: data.latitude, lng: data.longitude };
+          if (!roverMarker) {
+            roverMarker = new google.maps.Marker({
+              position: pos,
+              map,
+              title: `Live Rover @ ${data.timestamp || ''}`,
+              icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+            });
+          } else {
+            roverMarker.setPosition(pos);
+            roverMarker.setTitle(`Live Rover @ ${data.timestamp || ''}`);
+          }
+        }
+      });
+
+      const wifiRef = ref(db, "status/wifi");
+      const gpsRef = ref(db, "status/gps");
+      const metalRef = ref(db, "status/metal");
+
+      onValue(wifiRef, (snap) => {
+        document.getElementById("wifiStatus").textContent = snap.val() || "N/A";
+      });
+      onValue(gpsRef, (snap) => {
+        document.getElementById("gpsStatus").textContent = snap.val() || "N/A";
+      });
+      onValue(metalRef, (snap) => {
+        document.getElementById("metalStatus").textContent = snap.val() || "N/A";
+      });
+    };
+
+    window.clearMap = () => {
+      markers.forEach(marker => marker.setMap(null));
+      markers = [];
+      if (pathLine) pathLine.setMap(null);
+    };
+
+    window.downloadCSV = () => {
+      const csvRows = ["Latitude,Longitude,Timestamp"];
+      const minesRef = ref(db, "mines");
+      onValue(minesRef, (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          const d = childSnapshot.val();
+          if (d.latitude && d.longitude && d.timestamp)
+            csvRows.push(`${d.latitude},${d.longitude},"${d.timestamp}"`);
+        });
+        const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "mine_data.csv";
+        link.click();
+      }, { onlyOnce: true });
+    };
+
+    window.downloadKML = () => {
+      const header = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>`;
+      const footer = `</Document>\n</kml>`;
+      let kmlContent = "";
+      const minesRef = ref(db, "mines");
+      onValue(minesRef, (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          const d = childSnapshot.val();
+          if (d.latitude && d.longitude && d.timestamp) {
+            kmlContent += `\n<Placemark><name>Mine @ ${d.timestamp}</name><Point><coordinates>${d.longitude},${d.latitude},0</coordinates></Point></Placemark>`;
+          }
+        });
+        const blob = new Blob([header + kmlContent + footer], { type: "application/vnd.google-earth.kml+xml" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "mine_data.kml";
+        link.click();
+      }, { onlyOnce: true });
+    };
+  </script>
+  <script>
+    function logout() {
+      sessionStorage.removeItem("loggedIn");
+      window.location.href = "login.html";
+    }
+  </script>
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCoc6crlhgYkyquuR75ROyPnoD-mx3atK4&callback=initMap">
+  </script>
+</body>
+</html>
