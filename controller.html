@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rover Controller</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #222;
+      text-align: center;
+    }
+    h1 {
+      margin-top: 10px;
+      font-size: 2rem;
+    }
+    #info {
+      margin: 10px auto;
+      padding: 10px;
+      max-width: 600px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .control-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .row {
+      display: flex;
+      gap: 20px;
+    }
+    button {
+      font-size: 1.2rem;
+      padding: 15px 25px;
+      border: none;
+      border-radius: 8px;
+      background: #4caf50;
+      color: white;
+      transition: background 0.2s;
+    }
+    button:active {
+      background: #388e3c;
+    }
+    label {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    input[type=range] {
+      width: 80%;
+    }
+  </style>
+</head>
+<body>
+  <h1>ESP32 Rover Control</h1>
+  <div id="info">
+    <p><b>Latitude:</b> <span id="lat">Loading...</span></p>
+    <p><b>Longitude:</b> <span id="lng">Loading...</span></p>
+    <p><b>Sensor Status:</b> <span id="metal">Loading...</span></p>
+    <p><b>Last Sent:</b> <span id="timestamp">Loading...</span></p>
+    <p><b>Current Time:</b> <span id="current">Loading...</span></p>
+  </div>
+  <div class="control-panel">
+    <div class="row">
+      <button onmousedown="send('forward')" onmouseup="send('stop')" ontouchstart="send('forward')" ontouchend="send('stop')">Forward</button>
+    </div>
+    <div class="row">
+      <button onmousedown="send('left')" onmouseup="send('stop')" ontouchstart="send('left')" ontouchend="send('stop')">Left</button>
+      <button onmousedown="send('backward')" onmouseup="send('stop')" ontouchstart="send('backward')" ontouchend="send('stop')">Backward</button>
+      <button onmousedown="send('right')" onmouseup="send('stop')" ontouchstart="send('right')" ontouchend="send('stop')">Right</button>
+    </div>
+    <div>
+      <label for="speed">Motor Speed</label><br />
+      <input type="range" id="speed" min="100" max="255" value="200" oninput="updateSpeed(this.value)" />
+      <p><span id="speedValue">200</span></p>
+    </div>
+  </div>
+
+  <script>
+    function send(action) {
+      fetch(`/control?dir=${action}&speed=${document.getElementById('speed').value}`);
+    }
+
+    function updateSpeed(val) {
+      document.getElementById("speedValue").innerText = val;
+    }
+
+    async function updateData() {
+      try {
+        const res = await fetch('/status');
+        const data = await res.json();
+        document.getElementById("lat").innerText = data.lat;
+        document.getElementById("lng").innerText = data.lng;
+        document.getElementById("metal").innerText = data.metal;
+        document.getElementById("timestamp").innerText = data.timestamp;
+        document.getElementById("current").innerText = data.current;
+      } catch (e) {
+        console.log("Failed to fetch status");
+      }
+    }
+
+    setInterval(updateData, 2000);
+    updateData();
+  </script>
+</body>
+</html>
